@@ -21,7 +21,7 @@ folders = ["LAYING","SITTING","STANDING","WALKING","WALKING_DOWNSTAIRS","WALKING
 classes = {"WALKING":1,"WALKING_UPSTAIRS":2,"WALKING_DOWNSTAIRS":3,"SITTING":4,"STANDING":5,"LAYING":6}
 
 # combined_dir = os.path.join("Combined")
-combined_dir=r"C:\Users\srima\ML_assignement\ML_assignment1\Combined"
+combined_dir=r"C:\Users\sriva\Downloads\ML_assignment1\Combined"
 
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
                                                 # Train Dataset
