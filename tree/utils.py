@@ -52,12 +52,8 @@ def information_gain(Y: pd.Series, attr: pd.Series, criterion: str) -> float:
     Function to calculate the information gain using criterion (entropy, gini index or MSE)
     """
     attr = attr.sort_values()
-
-    # Compute the mean of consecutive elements
     means = attr.rolling(window=2).mean().dropna()
-    
     if check_ifreal(Y):
-        
         assert (criterion in ["gini_index", "information_gain", "MSE"])       
         if criterion == "MSE":
             max_gain=0
@@ -108,8 +104,6 @@ def opt_split_attribute(X: pd.DataFrame, y: pd.Series, criterion, features: pd.S
 
     return: attribute to split upon
     """
-    
-    # According to wheather the features are real or discrete valued and the criterion, find the attribute from the features series with the maximum information gain (entropy or varinace based on the type of output) or minimum gini index (discrete output).
     best_split = {}
     gains = np.array([np.array(information_gain(y, X[i], criterion)) for i in features])
     best_split['best_feature_index'] = np.argmax(gains[:, 0])
