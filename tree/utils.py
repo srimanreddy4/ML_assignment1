@@ -52,12 +52,8 @@ def information_gain(Y: pd.Series, attr: pd.Series, criterion: str) -> float:
     Function to calculate the information gain using criterion (entropy, gini index or MSE)
     """
     attr = attr.sort_values()
-
-    # Compute the mean of consecutive elements
     means = attr.rolling(window=2).mean().dropna()
-    
     if check_ifreal(Y):
-        
         assert (criterion in ["gini_index", "information_gain", "MSE"])       
         if criterion == "MSE":
             max_gain=0
@@ -108,19 +104,15 @@ def opt_split_attribute(X: pd.DataFrame, y: pd.Series, criterion, features: pd.S
 
     return: attribute to split upon
     """
-    
-    # According to wheather the features are real or discrete valued and the criterion, find the attribute from the features series with the maximum information gain (entropy or varinace based on the type of output) or minimum gini index (discrete output).
     best_split = {}
     gains = np.array([np.array(information_gain(y, X[i], criterion)) for i in features])
-    # print(gains.shape)
     best_split['best_feature_index'] = np.argmax(gains[:, 0])
     best_split['best_feature'] = features[best_split['best_feature_index']]
     best_split['max_info_gain'] = gains[best_split['best_feature_index'], 0]
     best_split['threshold_value'] = gains[best_split['best_feature_index'], 1]
 
     return best_split
-    
-    pass
+
 
 
 def split_data(X: pd.DataFrame, y: pd.Series, attribute, value):
@@ -134,14 +126,11 @@ def split_data(X: pd.DataFrame, y: pd.Series, attribute, value):
 
     return: splitted data(Input and output)
     """
-
-    # Split the data based on a particular value of a particular attribute. You may use masking as a tool to split the data.
     Left_Child_X = X[X[attribute] < value]
     Right_Child_X = X[X[attribute] >= value]
     Left_Child_y = y[X[attribute] < value]
     Right_Child_y = y[X[attribute] >= value]
     return [Left_Child_X, Left_Child_y,Right_Child_X, Right_Child_y]
-    pass
 
 
 class Node():
