@@ -16,8 +16,8 @@ import os
 # Give the path of the test and train folder of UCI HAR Dataset
 # train_path = "./UCI HAR Dataset/train"
 # test_path = "./UCI HAR Dataset/test"
-train_path = r"C:\Users\sriva\Downloads\ML_assignment1\data_pp\UCI HAR Dataset\train"
-test_path = r"C:\Users\sriva\Downloads\ML_assignment1\data_pp\UCI HAR Dataset\test"
+train_path = r"C:\Users\srima\ML_assignement\ML_assignment1\data_pp\UCI HAR Dataset\train"
+test_path = r"C:\Users\srima\ML_assignement\ML_assignment1\data_pp\UCI HAR Dataset\test"
 
 # Dictionary of activities. Provided by the dataset.
 ACTIVITIES = {
