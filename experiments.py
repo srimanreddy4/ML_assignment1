@@ -6,85 +6,100 @@ from tree.base import DecisionTree
 from metrics import *
 
 np.random.seed(42)
-num_avg_time = 100
+repeat_experiments = 10  # Number of runs to compute average time
 
-def gen_data(N, P, case):
+# Function to create synthetic data
+def create_synthetic_data(num_samples, num_features, case):
     if case == 1:
-        X = pd.DataFrame(np.random.randn(N, P))
-        y = pd.Series(np.random.randn(N))
+        data = pd.DataFrame(np.random.randn(num_samples, num_features))
+        labels = pd.Series(np.random.randn(num_samples))
     elif case == 2:
-        X = pd.DataFrame(np.random.randn(N, P))
-        y = pd.Series(np.random.randint(P, size=N), dtype="category")
+        data = pd.DataFrame(np.random.randn(num_samples, num_features))
+        labels = pd.Series(np.random.randint(num_features, size=num_samples), dtype="category")
     elif case == 3:
-        X = pd.DataFrame({i: pd.Series(np.random.randint(P, size=N), dtype="category") for i in range(P)})
-        y = pd.Series(np.random.randint(P, size=N), dtype="category")
+        data = pd.DataFrame({i: pd.Series(np.random.randint(num_features, size=num_samples), dtype="category") for i in range(num_features)})
+        labels = pd.Series(np.random.randint(num_features, size=num_samples), dtype="category")
     elif case == 4:
-        X = pd.DataFrame({i: pd.Series(np.random.randint(P, size=N), dtype="category") for i in range(P)})
-        y = pd.Series(np.random.randn(N))
+        data = pd.DataFrame({i: pd.Series(np.random.randint(num_features, size=num_samples), dtype="category") for i in range(num_features)})
+        labels = pd.Series(np.random.randn(num_samples))
     else:
         raise ValueError("Invalid case number")
-    return X, y
 
-def meas_learn(X_tr, y_tr, case):
+    return data, labels
+
+# Function to record training time
+def record_training_time(train_data, train_labels, case_type):
     start = time.time()
-    crit = "MSE" if case in [1, 3] else "gini_index"
-    tree = DecisionTree(criterion=crit)
-    tree.fit(X_tr, y_tr)
-    learn_time = time.time() - start
-    return learn_time, tree
+    if case_type in [1, 4]:
+        eval_criteria = "MSE"
+    else:
+        eval_criteria = "gini_index"
+    
+    model = DecisionTree(criterion=eval_criteria)
+    model.fit(train_data, train_labels)
+    
+    time_taken = time.time() - start
+    return time_taken, model
 
-def meas_pred(tree, X_te):
+# Function to record prediction time
+def record_prediction_time(trained_model, test_data):
     start = time.time()
-    y_pred = tree.predict(X_te)
-    pred_time = time.time() - start
-    return pred_time
+    pred_labels = trained_model.predict(test_data)
+    
+    time_taken = time.time() - start
+    return time_taken
 
-Ns = [20, 60, 100]
-Ms = [10, 40, 70]
+
+sample_sizes = [20, 60, 100]
+feature_counts = [2, 5, 10]
 cases = [1, 2, 3, 4]
-l_time = []
-p_time = []
+training_times = []
+prediction_times = []
 
 for case in cases:
-    case_l = []
-    case_p = []
+    case_train_times = []
+    case_pred_times = []
     
-    for N in Ns:
-        for M in Ms:
-            X, y = gen_data(N, M, case)
-            y_df = pd.DataFrame(y, columns=['new_col'])
-            X = X.join(y_df, rsuffix='_y')
+    for sample_size in sample_sizes:
+        train_times_per_sample = []
+        pred_times_per_sample = []
+        
+        for feature_count in feature_counts:
+            data, labels = create_synthetic_data(sample_size, feature_count, case)
             
-            split = int(0.7*N)
-            X_tr, X_te = X[:split], X[split:]
-            y_tr, y_te = y[:split], y[split:]
+            train_data, test_data = data[:int(0.7*sample_size)], data[int(0.7*sample_size):]
+            train_labels, test_labels = labels[:int(0.7*sample_size)], labels[int(0.7*sample_size):]
             
-            lt, tree = meas_learn(X_tr, y_tr, case)
-            case_l.append(lt)
+            train_time, model = record_training_time(train_data, train_labels, case)
+            train_times_per_sample.append(train_time)
             
-            pt = meas_pred(tree, X_te)
-            case_p.append(pt)
+            pred_time = record_prediction_time(model, test_data)
+            pred_times_per_sample.append(pred_time)
+        
+        case_train_times.append(train_times_per_sample)
+        case_pred_times.append(pred_times_per_sample)
     
-    l_time.append(case_l)
-    p_time.append(case_p)
+    training_times.append(case_train_times)
+    prediction_times.append(case_pred_times)
 
+# Plotting the results
 fig, axes = plt.subplots(nrows=len(cases), ncols=2, figsize=(15, 8))
-fig.suptitle('Time Complexity Analysis')
+fig.suptitle('Performance Analysis: Training and Prediction Times')
 
-for i, case in enumerate(cases):
-    axes[i, 0].set_title(f"Case {case} Learning Time")
-    for j, N in enumerate(Ns):
-        axes[i, 0].plot(Ms, l_time[i][j * len(Ms):(j + 1) * len(Ms)], label=f'N={N}')
-    axes[i, 0].set_xlabel('P (Features)')
-    axes[i, 0].set_ylabel('Time (s)')
-    axes[i, 0].legend()
+for idx, case in enumerate(cases):
+    axes[idx, 0].set_title(f"case {case} Training Time")
+    for idx_sample, sample_size in enumerate(sample_sizes):
+        axes[idx, 0].plot(feature_counts, training_times[idx][idx_sample], marker='o', label=f'Sample Size={sample_size}')
+    axes[idx, 0].set_xlabel('Feature Count (P)')
+    axes[idx, 0].set_ylabel('Time (s)')
+    axes[idx, 0].legend()
 
-    axes[i, 1].set_title(f"Case {case} Prediction Time")
-    for j, N in enumerate(Ns):
-        axes[i, 1].plot(Ms, p_time[i][j * len(Ms):(j + 1) * len(Ms)], label=f'N={N}')
-    axes[i, 1].set_xlabel('P (Features)')
-    axes[i, 1].set_ylabel('Time (s)')
-    axes[i, 1].legend()
+    axes[idx, 1].set_title(f"case {case} Prediction Time")
+    for idx_sample, sample_size in enumerate(sample_sizes):
+        axes[idx, 1].plot(feature_counts, prediction_times[idx][idx_sample], marker='o', label=f'Sample Size={sample_size}')
+    axes[idx, 1].set_xlabel('Feature Count (P)')
+    axes[idx, 1].set_ylabel('Time (s)')
+    axes[idx, 1].legend()
 
 plt.tight_layout(rect=[0, 0, 1, 0.96])
 plt.show()
